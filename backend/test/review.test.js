@@ -79,7 +79,7 @@ describe('Test review browsing', function() {
   })
 
 
-  it('should fetch reviews', async function() {
+  it('should fetch correct number of reviews', async function() {
     const response = await fetch(reviewUrl)
     const result = reviews = await response.json()
     expect(result).to.have.lengthOf(3)
@@ -87,5 +87,9 @@ describe('Test review browsing', function() {
 
   it('should have correct id', function() {
     expect(parseInt(reviews[0].tmdb_id)).to.equal(r0.id)
+  })
+
+  it('should have correct rating', function() {
+    expect(reviews[1].rating).to.equal(r1.rating)
   })
 })
