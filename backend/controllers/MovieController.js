@@ -57,7 +57,7 @@ const add = async (req, res, next) => {
     return res.status(400).json({ error: 'body tai id puuttuu'})
   } else {
     const checkId = () => {
-      if(((typeof bodyId) === 'number') && bodyId.isInt()) {
+      if(((typeof bodyId) === 'number') && Number.isInteger(bodyId)) {
         return bodyId.toString(10)
       } else if(((typeof bodyId) === 'string') && parseInt(bodyId, 10)) {
         return bodyId

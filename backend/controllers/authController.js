@@ -91,7 +91,7 @@ const login = async (req, res) => {
         }
 
         const user = await pool.query(
-            'SELECT user_id, email, password_hash, created_at FROM users WHERE email = $1',
+            'SELECT user_id, email, password_hash, created_at FROM users WHERE email = $1;',
             [email]
         );
 
@@ -121,7 +121,7 @@ const login = async (req, res) => {
             { expiresIn: process.env.JWT_EXPIRE }
         );
 
-        res.json({
+        res.status(200).json({
             message: 'Kirjautuminen onnistui',
             user: {
                 id: user.rows[0].user_id,
@@ -147,7 +147,7 @@ const deleteAccount = async (req, res) => {
         const userId = req.userId;
 
         const result = await pool.query(
-            'DELETE FROM users WHERE user_id = $1 RETURNING email',
+            'DELETE FROM users WHERE user_id = $1 RETURNING email;',
             [userId]
         );
 
@@ -157,7 +157,7 @@ const deleteAccount = async (req, res) => {
             });
         }
         
-        res.json({
+        res.status(200).json({
             message: 'Käyttäjätili poistettu onnistuneesti',
             deletedEmail: result.rows[0].email
         });
