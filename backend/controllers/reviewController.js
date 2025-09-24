@@ -41,7 +41,7 @@ const selectReview = async (req, res, next) => {
   } else {
     try {
       const reviewResult = await pool.query(
-        'SELECT review_id, review_text, rating, reviews.created_at tmdb_id, title, poster_url, release_year'
+        'SELECT review_id, review_text, rating, reviews.created_at, tmdb_id, title, poster_url, release_year'
         +' FROM reviews INNER JOIN movies ON reviews.movie_id=movies.movie_id'
         +' WHERE review_id=$1;',
         [reviewId]
@@ -60,7 +60,7 @@ const selectReview = async (req, res, next) => {
 const selectReviewsForMainPage = async (req, res, next) => {
   try {
     result = await pool.query(
-      'SELECT review_id, review_text, rating, reviews.created_at tmdb_id, title, poster_url, release_year'
+      'SELECT review_id, review_text, rating, reviews.created_at, tmdb_id, title, poster_url, release_year'
       +' FROM reviews INNER JOIN movies ON reviews.movie_id=movies.movie_id'
       +' ORDER BY reviews.created_at DESC LIMIT 30;'
     )

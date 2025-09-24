@@ -6,6 +6,8 @@ describe('Test review browsing', function() {
   const authUrl = apiUrl+'auth/'
   const reviewUrl = apiUrl+'reviews/'
 
+  let reviews = []
+
   async function deleteAccount(token) {
     const response = await fetch(authUrl+'delete-account/', {
       method: 'DELETE',
@@ -73,13 +75,17 @@ describe('Test review browsing', function() {
       return result.id
     }
 
-    return [await addReview(r0), await addReview(r1), await addReview(r2)]
+    return [await addReview(r2), await addReview(r1), await addReview(r0)]
   })
 
 
   it('should fetch reviews', async function() {
     const response = await fetch(reviewUrl)
-    const reviews = await response.json()
-    expect(reviews, 'array length').to.have.lengthOf(3)
+    const result = reviews = await response.json()
+    expect(result).to.have.lengthOf(3)
+  })
+
+  it('should have correct id', function() {
+    expect(parseInt(reviews[0].tmdb_id)).to.equal(r0.id)
   })
 })
