@@ -92,4 +92,8 @@ describe('Test review browsing', function() {
   it('should have correct rating', function() {
     expect(reviews[1].rating).to.equal(r1.rating)
   })
+
+  it('should have correct review text', function() {
+    expect(reviews[2].review_text).to.equal(r2.review)
+  })
 })
