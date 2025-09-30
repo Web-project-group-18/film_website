@@ -8,6 +8,7 @@ const SearchFilmToReview = () => {
 
   const [query, setQuery] = useState("")
   const [movies, setMovies] = useState([])
+  const [imgBaseUrl, setImgBaseUrl] = useState("")
 
   const onText = (event) => {
     setQuery(event.target.value)
@@ -16,8 +17,13 @@ const SearchFilmToReview = () => {
   const onSearch = async (event) => {
     event.preventDefault()
     const response = await fetch("http://localhost:3001/api/movies/search/"+encodeURI(query))
+    if(response.status === 404) {
+      setImgBaseUrl([])
+      setMovies([])
+    }
     const result = await response.json()
     // const firstFewMovies =  result.results.slice(0, 5)
+    setImgBaseUrl(result.img_base_url + "w185")
     setMovies(result.results)
   }
 
@@ -37,7 +43,7 @@ const SearchFilmToReview = () => {
           {movies.map((movie) => (
             <MovieCard
               title={movie.title}
-              image={process.env.REACT_APP_IMG_BASE_URL+movie.poster_path}
+              image={imgBaseUrl+movie.poster_path}
               year={movie.release_date.slice(0, 4)}
               onClick={() => onChoose(movie.id)}
             />
