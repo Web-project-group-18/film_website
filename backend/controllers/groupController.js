@@ -1,7 +1,17 @@
 const pool = require('../config/database');
+const { getImgBaseUrl } = require('./MovieController.js')
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
+
+const selectMatchingGroup = async (userId, groupId) => {
+  // RETURNS ARRAY OF ZERO OR ONE
+  const select = await pool.query(
+    "SELECT * FROM group_members WHERE status='approved' AND user_id=2 AND group_id=1;",
+    [userId, groupId]
+  )
+  return select.rows
+}
 
 const createGroup = async (req, res) => {
   try {
@@ -37,6 +47,72 @@ const createGroup = async (req, res) => {
     res.status(500).json({ error: 'Palvelinvirhe ryhmän luonnissa' });
   }
 };
+
+const addMovieToGroup = async (req, res) => {
+  const fetchMovie = async (tmdbId) => {
+    // fetch movie from TMDB
+    const response = await fetch('https://api.themoviedb.org/3/movies/'+tmdbId+'?language=fi-FI', {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        Authorization: 'Bearer '+process.env.TMDB_TOKEN
+      }
+    })
+    if(response.status === 200) {
+      return await response.json()
+    } else {
+      return Error('Elokuvaa ei saatu haettua TMDB:stä')
+    }
+  }
+  const getMovieId = async (tmdbId, movie) => {
+    // Check if movie in db. If in db, return id. Else insert it to db and return id.
+    const select = await pool.query('SELECT movie_id FROM movies WHERE tmdb_id=$1;', [tmdbId])
+    if(select.rows.length === 0) {
+      const movie = await fetchMovie()
+      const insert = await pool.query(
+        'INSERT INTO movies (tmdb_id, title, description, poster_url, release_year, genre, tmdb_rating)'
+        +' VALUES ($1, $2, $3, $4, $5, $6, $7)'
+        +' RETURNING movie_id;',
+        [movie.id, movie.title, movie.overview,
+          (await getImgBaseUrl() + movie.poster_path), parseInt(movie.release_date.split(0, 4)),
+          movie.genres[0].name, movie.vote_average
+        ]
+      )
+      return insert.rows[0].movie_id
+    } else {
+      return select.rows[0].movie_id
+    }
+  }
+
+  const tmdbId = req.body.movie_id
+  if(!tmdbId) {
+    return res.status(400).json({ error: 'ei bodya' })
+  } else {
+    const userId = req.userId
+    const reqGroupId = req.params.id
+    try {
+      const groupIdArray = await selectMatchingGroup(userId, reqGroupId)
+      if(groupIdArray.length === 0) {
+        return res.status(403).json({ error: 'Et kuulu tähän ryhmään'})
+      } else {
+        const groupId = groupIdArray[0].group_id
+        const movieId = await getMovieId(tmdbId)
+        const insert = await pool.query(
+          'INSERT INTO group_movies (group_id, movie_id, added_by_user_id)'
+          +' VALUES ($1, $2, $3);',
+          [groupId, movieId, userId]
+        )
+        if(insert.rowCount) {
+          return res.status(201).json({ message: 'Elokuva lisätty ryhmään' })
+        } else {
+          return next(Error("Elokuvaa ei saatu lisättyä ryhmään"))
+        }
+      }
+    } catch(e) {
+      return next(e)
+    }
+  }
+}
 
 const getAllGroups = async (req, res) => {
   try {
@@ -83,7 +159,7 @@ const getUserGroups = async (req, res) => {
       ORDER BY g.created_at DESC
     `, [userId]);
 
-    res.json({ groups: groups.rows });
+    res.status(200).json({ groups: groups.rows });
   } catch (error) {
     console.error('Käyttäjän ryhmien hakuvirhe:', error);
     res.status(500).json({ error: 'Palvelinvirhe ryhmien haussa' });
@@ -141,6 +217,20 @@ const getGroup = async (req, res) => {
     res.status(500).json({ error: 'Palvelinvirhe ryhmän haussa' });
   }
 };
+
+const getGroupMovies = async () => {
+  try {
+    const groupIdArray = await selectMatchingGroup(req.userId, req.params.id)
+    if(groupIdArray.length === 0) {
+      return res.status(403).json({ error: 'Et kuulu tähän ryhmään'})
+    } else {
+      const groupId = groupIdArray[0].group_id
+      const select = pool.query('SELECT ')
+    }
+  } catch(e) {
+    return next(e)
+  }
+}
 
 const deleteGroup = async (req, res) => {
   try {
@@ -434,6 +524,7 @@ module.exports = {
   addMember,
   removeMember,
   leaveGroup,
+  addMovieToGroup
 };
 
 

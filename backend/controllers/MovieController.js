@@ -14,7 +14,7 @@ const getImgBaseUrl = async () => {
     const response = await fetch('https://api.themoviedb.org/3/configuration', options)
     const data = await response.json()
     if(response.status === 200) {
-      const imgBaseUrl = data.images.base_url
+      const imgBaseUrl = data.images.base_url+'w185'
       return imgBaseUrl
     } else {
       return Error("Couldn't get image base url")
@@ -100,7 +100,7 @@ const add = async (req, res, next) => {
           +' VALUES ($1, $2, $3, $4, $5, $6, $7)'
           +' RETURNING *;',
           [
-            data.id, data.title, data.overview, imgBaseUrl+'w185'+data.poster_path,
+            data.id, data.title, data.overview, imgBaseUrl+data.poster_path,
             parseInt(data.release_date.slice(0, 4)), genreName, data.vote_average, 
           ]
         )
@@ -151,4 +151,4 @@ const search = async (req, res, next) => {
   }
 }
 
-module.exports = { add, search }
+module.exports = { add, search, getImgBaseUrl }
