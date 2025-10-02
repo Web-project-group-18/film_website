@@ -1,9 +1,14 @@
-div.group-modal {
+div.group-modal-bg {
   background-color: #0000007f;
   margin: auto;
   position: fixed;
   width: 100%;
-  left: 0;
-  right: 0;
+  height: 100%;
   margin:  100px auto;
+}
+
+div#group-movie-modal {
+  margin-left: auto;
+  margin-right: auto;
+  width: 280px;
 }

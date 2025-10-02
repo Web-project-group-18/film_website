@@ -51,14 +51,16 @@ const AddMovieToGroup = ({ onClose, tmdbMovie }) => {
     const formData = new FormData(form)
   }
   return(
-    <div className="group-modal" id="group-movie-modal">
-      <MovieCard
-        title={tmdbMovie.title}
-        image={'https://image.tmdb.org/t/p/w185'+tmdbMovie.poster_path}
-        year={tmdbMovie.release_date.slice(0, 4)}
-      />
-      <GroupForm handleSubmit={addMovieToGroup} />
-      <button onClick={onClose}>Palaa elokuvahakuun</button>
+    <div className="group-modal-bg">
+      <div className="group-modal" id="group-movie-modal">
+        <MovieCard
+          title={tmdbMovie.title}
+          image={'https://image.tmdb.org/t/p/w185'+tmdbMovie.poster_path}
+          year={tmdbMovie.release_date.slice(0, 4)}
+        />
+        <GroupForm handleSubmit={addMovieToGroup} />
+        <button onClick={onClose}>Palaa elokuvahakuun</button>
+      </div>
     </div>
   )
 }
