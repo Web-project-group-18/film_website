@@ -1,0 +1,9 @@
+div.group-modal {
+  background-color: #0000007f;
+  margin: auto;
+  position: fixed;
+  width: 100%;
+  left: 0;
+  right: 0;
+  margin:  100px auto;
+}

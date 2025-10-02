@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-
+import '../styles/groupModals.css'
 import MovieCard from './MovieCard'
 
 const apiUrl = 'http://localhost:3001/api/groups/'
@@ -51,7 +51,7 @@ const AddMovieToGroup = ({ onClose, tmdbMovie }) => {
     const formData = new FormData(form)
   }
   return(
-    <div className="group-modal">
+    <div className="group-modal" id="group-movie-modal">
       <MovieCard
         title={tmdbMovie.title}
         image={'https://image.tmdb.org/t/p/w185'+tmdbMovie.poster_path}
