@@ -160,40 +160,43 @@ export default function Search() {
 
       {loading && <p>Ladataan…</p>}
 
-      {showModal && (
+      {(showModal || showGroupModal) && (
         <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Valitse suosikkilista</h3>
-            <select
-              value={selectedList}
-              onChange={(e) => setSelectedList(e.target.value)}
-            >
-              {favoriteLists.map((list) => (
-                <option key={list.list_id} value={list.list_id}>
-                  {list.list_name}
-                </option>
-              ))}
-            </select>
-            <div className="modal-buttons">
-              <button
-                className="confirm-btn"
-                onClick={handleConfirmAddFavorite}
-              >Vahvista</button>
-              <button
-                className="cancel-btn"
-                onClick={() => {
-                  setShowModal(false);
-                  setMovieToAdd(null);
-                }}
-              >Peruuta</button>
+          {showModal && (
+            <div className="modal-content">
+              <h3>Valitse suosikkilista</h3>
+              <select
+                value={selectedList}
+                onChange={(e) => setSelectedList(e.target.value)}
+              >
+                {favoriteLists.map((list) => (
+                  <option key={list.list_id} value={list.list_id}>
+                    {list.list_name}
+                  </option>
+                ))}
+              </select>
+              <div className="modal-buttons">
+                <button
+                  className="confirm-btn"
+                  onClick={handleConfirmAddFavorite}
+                >Vahvista</button>
+                <button
+                  className="cancel-btn"
+                  onClick={() => {
+                    setShowModal(false);
+                    setMovieToAdd(null);
+                  }}
+                >Peruuta</button>
+              </div>
             </div>
-          </div>
+          )}
+          {showGroupModal && (
+            <div className="modal-content">
+              <AddMovieToGroup onClose={() => setShowGroupModal(false)} tmdbMovie={movieToAdd} />
+            </div>
+          )}
+          
         </div>
-      )}
-
-      {showGroupModal && createPortal(
-        <AddMovieToGroup onClose={() => setShowGroupModal(false)} tmdbMovie={movieToAdd}/>,
-        document.body
       )}
 
       <div className="results-grid">
