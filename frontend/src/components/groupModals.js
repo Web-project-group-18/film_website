@@ -21,10 +21,9 @@ const GroupForm = ({ handleSubmit }) => {
       if(response.status === 200) {
         const result = await response.json()
         setGroups(result.groups)
-        console.log(result.groups)
       }
     }
-    if(fetchStarted.current === false) {
+    if(!fetchStarted.current) {
       fetchStarted.current = true
       fetchGroups()
     }
@@ -39,9 +38,8 @@ const GroupForm = ({ handleSubmit }) => {
       <h4>Valitse ryhmä</h4>
       <div id="group-radio">
         {groups.map((g) => (
-            <label className="group-select-button">
+            <label key={g.group_id} className="group-select-button">
               <input
-                key={g.group_id}
                 type="radio"
                 name="group"
                 value={g.group_id}
@@ -60,10 +58,35 @@ const GroupForm = ({ handleSubmit }) => {
 }
 
 const AddMovieToGroup = ({ onClose, tmdbMovie }) => {
-  const addMovieToGroup = (event) => {
-    event.preventDefault()
-    const form = event.target
-    const formData = new FormData(form)
+  const [status, setStatus] = useState(0)
+  const [body, setBody] = useState({})
+  const fetchStarted = useRef(false)
+
+  const addMovieToGroup = async (e, movieId) => {
+    e.preventDefault()
+    if(!fetchStarted.current) {
+      fetchStarted.current = true
+
+      const form = e.target
+      const formData = new FormData(form)
+      const groupId = formData.get('group')
+      
+      const response = await fetch(
+        apiUrl+groupId+'/movies', {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer "+localStorage.getItem('token')
+            },
+          body: JSON.stringify({ tmdb_id: movieId })
+        }
+      )
+      const result = await response.json()
+      setBody(result)
+      const s = response.status
+      setStatus(s)
+      fetchStarted.current = false
+    }
   }
   return(
     <div className="group-modal" id="group-movie-modal">
@@ -72,7 +95,12 @@ const AddMovieToGroup = ({ onClose, tmdbMovie }) => {
         image={'https://image.tmdb.org/t/p/w185'+tmdbMovie.poster_path}
         year={tmdbMovie.release_date.slice(0, 4)}
       />
-      <GroupForm handleSubmit={addMovieToGroup} />
+      <GroupForm handleSubmit={(e) => addMovieToGroup(e, tmdbMovie.id)} />
+      {(status >= 100) && (
+        <h3>
+          {((status === 201) || (status === 200)) ? body.message : "Elokuvan lisäämisessä ryhmään tapahtui virhe"}
+        </h3>
+      )}
       <button onClick={onClose}>Peruuta</button>
     </div>
   )

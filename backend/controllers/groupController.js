@@ -7,7 +7,7 @@ const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 const selectMatchingGroup = async (userId, groupId) => {
   // RETURNS ARRAY OF ZERO OR ONE
   const select = await pool.query(
-    "SELECT * FROM group_members WHERE status='approved' AND user_id=2 AND group_id=1;",
+    "SELECT * FROM group_members WHERE status='approved' AND user_id=$2 AND group_id=$1;",
     [userId, groupId]
   )
   return select.rows
@@ -48,7 +48,7 @@ const createGroup = async (req, res) => {
   }
 };
 
-const addMovieToGroup = async (req, res) => {
+const addMovieToGroup = async (req, res, next) => {
   const fetchMovie = async (tmdbId) => {
     // fetch movie from TMDB
     const response = await fetch('https://api.themoviedb.org/3/movies/'+tmdbId+'?language=fi-FI', {
@@ -61,14 +61,16 @@ const addMovieToGroup = async (req, res) => {
     if(response.status === 200) {
       return await response.json()
     } else {
+      console.log(await response.json())
       return Error('Elokuvaa ei saatu haettua TMDB:stä')
     }
   }
-  const getMovieId = async (tmdbId, movie) => {
+  const getMovieId = async (tmdbId) => {
     // Check if movie in db. If in db, return id. Else insert it to db and return id.
     const select = await pool.query('SELECT movie_id FROM movies WHERE tmdb_id=$1;', [tmdbId])
     if(select.rows.length === 0) {
       const movie = await fetchMovie()
+      console.log(movie)
       const insert = await pool.query(
         'INSERT INTO movies (tmdb_id, title, description, poster_url, release_year, genre, tmdb_rating)'
         +' VALUES ($1, $2, $3, $4, $5, $6, $7)'
@@ -84,7 +86,7 @@ const addMovieToGroup = async (req, res) => {
     }
   }
 
-  const tmdbId = req.body.movie_id
+  const tmdbId = req.body.tmdb_id
   if(!tmdbId) {
     return res.status(400).json({ error: 'ei bodya' })
   } else {
@@ -109,7 +111,11 @@ const addMovieToGroup = async (req, res) => {
         }
       }
     } catch(e) {
-      return next(e)
+      if(e.code == 23505) {
+        return res.status(200).json({ message: "Elokuva on jo ryhmässä" })
+      } else {
+        return next(e)
+      }
     }
   }
 }
@@ -218,7 +224,7 @@ const getGroup = async (req, res) => {
   }
 };
 
-const getGroupMovies = async () => {
+const getGroupMovies = async (req, res, next) => {
   try {
     const groupIdArray = await selectMatchingGroup(req.userId, req.params.id)
     if(groupIdArray.length === 0) {
