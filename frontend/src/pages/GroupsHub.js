@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import GroupService from "../services/groupService";
+import MovieCard from "../components/MovieCard";
 /*import "../styles/GroupsHub.css";*/
 
 
@@ -37,9 +38,10 @@ export default function GroupsHub() {
   // elokuvat
   const apiUrl = 'http://localhost:3001/api/groups/'
   const [showMovies, setShowMovies] = useState(false)
+  const [movies, setMovies] = useState([])
   const moviesLoading = useRef(false)
   useEffect(() => {
-    const fetchMovies = async () => {
+    const fetchMovies = async (setMoviesCallback) => {
       const response = await fetch(apiUrl+selectedId+'/movies', {
         method: 'GET',
         headers: {
@@ -49,12 +51,13 @@ export default function GroupsHub() {
       })
       const result = await response.json()
       console.log(result)
+      setMoviesCallback(result)
     }
     if(!moviesLoading.current && showMovies) {
       moviesLoading.current = true
-      fetchMovies()
+      fetchMovies(setMovies)
     }
-  }, [moviesLoading, showMovies])
+  }, [moviesLoading, showMovies, movies, setMovies])
 
   const toggleMovies = () => {
     if(showMovies) {
@@ -558,7 +561,9 @@ export default function GroupsHub() {
         {showMovies && (
           <div>
             <div style={{ display: "grid", gap: 8 }}>
-              
+              {movies.map((m) => (
+                <MovieCard title={m.title} image={m.poster_url} year={m.release_year} />
+              ))}
             </div>
           </div>
         )}
