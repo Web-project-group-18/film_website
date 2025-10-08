@@ -34,6 +34,37 @@ export default function GroupsHub() {
 
   const role = useMemo(() => (group ? group._userRole : null), [group]);
 
+  // elokuvat
+  const apiUrl = 'http://localhost:3001/api/groups/'
+  const [showMovies, setShowMovies] = useState(false)
+  const moviesLoading = useRef(false)
+  useEffect(() => {
+    const fetchMovies = async () => {
+      const response = await fetch(apiUrl+selectedId+'/movies', {
+        method: 'GET',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer "+localStorage.getItem('token')
+        }
+      })
+      const result = await response.json()
+      console.log(result)
+    }
+    if(!moviesLoading.current && showMovies) {
+      moviesLoading.current = true
+      fetchMovies()
+    }
+  }, [moviesLoading, showMovies])
+
+  const toggleMovies = () => {
+    if(showMovies) {
+      setShowMovies(false)
+      moviesLoading.current = false
+    } else {
+      setShowMovies(true)
+    }
+  }
+
   /* -------------------- lataukset -------------------- */
   const loadLists = useCallback(async () => {
     setLoading(true);
@@ -520,6 +551,18 @@ export default function GroupsHub() {
           </Panel>
         </div>
       )}
+      <Panel title="Ryhmän elokuvat">
+        <button id="show-group-movies" onClick={toggleMovies}>
+          {(showMovies) ? "Piilota elokuvat" : "Näytä elokuvat"}
+        </button>
+        {showMovies && (
+          <div>
+            <div style={{ display: "grid", gap: 8 }}>
+              
+            </div>
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }

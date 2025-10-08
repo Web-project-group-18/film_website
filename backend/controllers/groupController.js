@@ -7,7 +7,7 @@ const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 const selectMatchingGroup = async (userId, groupId) => {
   // RETURNS ARRAY OF ZERO OR ONE
   const select = await pool.query(
-    "SELECT * FROM group_members WHERE status='approved' AND user_id=$2 AND group_id=$1;",
+    "SELECT group_id FROM group_members WHERE status='approved' AND user_id=$1 AND group_id=$2;",
     [userId, groupId]
   )
   return select.rows
@@ -61,7 +61,6 @@ const addMovieToGroup = async (req, res, next) => {
     if(response.status === 200) {
       return await response.json()
     } else {
-      console.log(await response.json())
       return Error('Elokuvaa ei saatu haettua TMDB:stä')
     }
   }
@@ -70,7 +69,6 @@ const addMovieToGroup = async (req, res, next) => {
     const select = await pool.query('SELECT movie_id FROM movies WHERE tmdb_id=$1;', [tmdbId])
     if(select.rows.length === 0) {
       const movie = await fetchMovie()
-      console.log(movie)
       const insert = await pool.query(
         'INSERT INTO movies (tmdb_id, title, description, poster_url, release_year, genre, tmdb_rating)'
         +' VALUES ($1, $2, $3, $4, $5, $6, $7)'
@@ -231,7 +229,13 @@ const getGroupMovies = async (req, res, next) => {
       return res.status(403).json({ error: 'Et kuulu tähän ryhmään'})
     } else {
       const groupId = groupIdArray[0].group_id
-      const select = pool.query('SELECT ')
+      const select = await pool.query('SELECT tmdb_id, title, poster_url, release_year'
+        +' FROM movies'
+        +' INNER JOIN group_movies ON movies.movie_id=group_movies.movie_id'
+        +' WHERE group_id=$1;',
+        [groupId]
+      )
+      return res.status(200).json(select.rows)
     }
   } catch(e) {
     return next(e)
@@ -530,7 +534,8 @@ module.exports = {
   addMember,
   removeMember,
   leaveGroup,
-  addMovieToGroup
+  addMovieToGroup,
+  getGroupMovies
 };
 
 
