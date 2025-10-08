@@ -40,8 +40,8 @@ const Reviews = () => {
       <h2>Arvostelut</h2>
       <div id="recent-reviews">
         {reviews.map((item) => (
-          <Link to={"/reviews/"+item.review_id}>
-            <div className="single-review" key={item.review_id}>
+          <Link key={item.review_id} to={"/reviews/"+item.review_id}>
+            <div className="single-review">
               <MovieCard
                 title={item.title}
                 image={item.poster_url}
