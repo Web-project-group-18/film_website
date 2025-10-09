@@ -40,6 +40,8 @@ export default function GroupsHub() {
   const [showMovies, setShowMovies] = useState(false)
   const [movies, setMovies] = useState([])
   const moviesLoading = useRef(false)
+  const loadedId = useRef(-1)
+
   useEffect(() => {
     const fetchMovies = async (setMoviesCallback) => {
       const response = await fetch(apiUrl+selectedId+'/movies', {
@@ -53,11 +55,12 @@ export default function GroupsHub() {
       console.log(result)
       setMoviesCallback(result)
     }
-    if(!moviesLoading.current && showMovies) {
+    if((!moviesLoading.current || loadedId.current !== selectedId) && showMovies) {
       moviesLoading.current = true
+      loadedId.current = selectedId
       fetchMovies(setMovies)
     }
-  }, [moviesLoading, showMovies, movies, setMovies])
+  }, [moviesLoading, showMovies, movies, setMovies,  loadedId, selectedId])
 
   const toggleMovies = () => {
     if(showMovies) {
@@ -558,7 +561,7 @@ export default function GroupsHub() {
         <button id="show-group-movies" onClick={toggleMovies}>
           {(showMovies) ? "Piilota elokuvat" : "Näytä elokuvat"}
         </button>
-        {showMovies && (
+        {showMovies && movies.length > 0 && (
           <div>
             <div style={{ display: "grid", gap: 8 }}>
               {movies.map((m) => (
@@ -571,4 +574,3 @@ export default function GroupsHub() {
     </div>
   );
 }
-
