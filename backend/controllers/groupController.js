@@ -51,7 +51,7 @@ const createGroup = async (req, res) => {
 const addMovieToGroup = async (req, res, next) => {
   const fetchMovie = async (tmdbId) => {
     // fetch movie from TMDB
-    const response = await fetch('https://api.themoviedb.org/3/movies/'+tmdbId+'?language=fi-FI', {
+    const response = await fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'?language=fi-FI', {
       method: 'GET',
       headers: {
         accept: 'application/json',
@@ -68,7 +68,8 @@ const addMovieToGroup = async (req, res, next) => {
     // Check if movie in db. If in db, return id. Else insert it to db and return id.
     const select = await pool.query('SELECT movie_id FROM movies WHERE tmdb_id=$1;', [tmdbId])
     if(select.rows.length === 0) {
-      const movie = await fetchMovie()
+      const movie = await fetchMovie(tmdbId)
+      console.log(movie)
       const insert = await pool.query(
         'INSERT INTO movies (tmdb_id, title, description, poster_url, release_year, genre, tmdb_rating)'
         +' VALUES ($1, $2, $3, $4, $5, $6, $7)'
