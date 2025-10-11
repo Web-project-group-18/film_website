@@ -106,8 +106,53 @@ const AddMovieToGroup = ({ onClose, tmdbMovie }) => {
   )
 }
 
-const AddShowtimeToGroup = () => {
-  
+const AddShowtimeToGroup = ({ onClose, showtime }) => {
+  const [status, setStatus] = useState(0)
+  const [body, setBody] = useState({})
+  const fetchStarted = useRef(false)
+
+  const addShowtimeToGroup = async (e, showtime) => {
+    e.preventDefault()
+    if(!fetchStarted.current) {
+      fetchStarted.current = true
+
+      const form = e.target
+      const formData = new FormData(form)
+      const groupId = formData.get('group')
+      
+      const response = await fetch(
+        apiUrl+groupId+'/showtimes', {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer "+localStorage.getItem('token')
+            },
+          body: JSON.stringify({
+            areaId: showtime.areaId,
+            date: showtime.date,
+            eventId: showtime.eventId,
+            time: showtime.time
+          })
+        }
+      )
+      const result = await response.json()
+      setBody(result)
+      const s = response.status
+      setStatus(s)
+      fetchStarted.current = false
+    }
+  }
+  return(
+    <div className="group-modal" id="group-showtime-modal">
+      <GroupForm handleSubmit={(e) => addShowtimeToGroup(e, showtime)} />
+      {(status >= 100) && (
+        <h3>
+          {((status === 201) || (status === 200)) ? body.message : "Elokuvan lisäämisessä ryhmään tapahtui virhe"}
+        </h3>
+      )}
+      <button onClick={onClose}>Peruuta</button>
+    </div>
+  )
 }
 
-export { AddMovieToGroup }
+export { AddMovieToGroup, AddShowtimeToGroup }

@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/MovieModal.css';
 
+import { AddShowtimeToGroup } from './groupModals';
+
 function MovieModal({ movie, areaId, onClose }) {
     const [details, setDetails] = useState(null);
     const [groupedShowtimes, setGroupedShowtimes] = useState({});
     const [expanded, setExpanded] = useState(false);
+    const [showGroupModal, setShowGroupModal] = useState(false)
+    const [showtimeToAdd, setShowtimeToAdd] = useState({})
+
+    const isLoggedIn = !!localStorage.getItem('token')
+
+    const openGroupModal = (showtime) => {
+        setShowtimeToAdd(showtime)
+        setShowGroupModal(true)
+    }
 
     useEffect(() => {
         if (!movie) return;
@@ -35,8 +46,8 @@ function MovieModal({ movie, areaId, onClose }) {
     }, [movie]);
 
     useEffect(() => {
-    setExpanded(false); // resetoi "Näytä lisää" aina kun uusi elokuva avataan
-}, [movie]);
+        setExpanded(false); // resetoi "Näytä lisää" aina kun uusi elokuva avataan
+    }, [movie]);
 
 
     useEffect(() => {
@@ -57,7 +68,8 @@ function MovieModal({ movie, areaId, onClose }) {
                         const date = new Date(startTime).toLocaleDateString('fi-FI', {
                             weekday: 'long',
                             day: '2-digit',
-                            month: '2-digit'
+                            month: '2-digit',
+                            year: 'numeric'
                         });
                         if (!grouped[date]) {
                             grouped[date] = [];
@@ -70,7 +82,6 @@ function MovieModal({ movie, areaId, onClose }) {
                         );
                     }
                 }
-
                 setGroupedShowtimes(grouped);
             } catch (err) {
                 console.error('Näytösaikojen haku epäonnistui:', err);
@@ -85,7 +96,14 @@ function MovieModal({ movie, areaId, onClose }) {
     const shortText = details?.synopsis?.slice(0, 300); // lyhyt versio
 
     return (
-        <div className="movie-modal-overlay" onClick={onClose}>
+        <div className="movie-modal-overlay">
+            {showGroupModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <AddShowtimeToGroup onClose={() => setShowGroupModal(false)} showtime={showtimeToAdd} />
+                    </div>
+                </div>
+            )}
             <div className="movie-modal-content" onClick={(e) => e.stopPropagation()}>
                 <button className="close-button" onClick={onClose}>×</button>
                 <div className="modal-layout">
@@ -106,8 +124,26 @@ function MovieModal({ movie, areaId, onClose }) {
                         <div className="scroll-box">
                             {Object.entries(groupedShowtimes).map(([date, times], index) => (
                                 <div key={index} className="showtime-day">
-                                    <strong>{date}</strong><br />
-                                    {times.join(', ')}
+                                    <strong>{date.slice(0, -4)}</strong><br />
+                                    <div className="showtimes">
+                                    {times.map((t) => (
+                                            <div key={t} className="showtime">
+                                                <p>{t}</p>
+                                                {isLoggedIn && (
+                                                    <button className="add-showtime-to-group"
+                                                        onClick={() => openGroupModal({
+                                                            areaId,
+                                                            date: date.slice(-10),
+                                                            eventId: details.eventID,
+                                                            time: t
+                                                        })}
+                                                    >
+                                                        Lisää ryhmään
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             ))}
                         </div>

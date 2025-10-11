@@ -127,6 +127,11 @@
     color: #fff;
 }
 
+.showtime-day .showtimes {
+    display: flex;
+    flex-direction: row;
+}
+
 .toggle-button {
     background: none;
     border: none;
