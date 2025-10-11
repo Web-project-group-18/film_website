@@ -88,7 +88,13 @@ const add = async (req, res, next) => {
     const insertMovie = async () => {
       try {
         const data = await fetchMovie()
+        if (data instanceof Error) {
+          return data;
+        }
         const imgBaseUrl = await getImgBaseUrl()
+        if (imgBaseUrl instanceof Error) {
+          return imgBaseUrl;
+        }
         let genreName = undefined
         if(!data.genres || data.genres.length == 0) {
           genreName = null
@@ -100,8 +106,8 @@ const add = async (req, res, next) => {
           +' VALUES ($1, $2, $3, $4, $5, $6, $7)'
           +' RETURNING *;',
           [
-            data.id, data.title, data.overview, imgBaseUrl+'w185'+data.poster_path,
-            parseInt(data.release_date.slice(0, 4)), genreName, data.vote_average, 
+            data.id.toString(), data.title, data.overview, imgBaseUrl+'w185'+data.poster_path,
+            data.release_date ? parseInt(data.release_date.slice(0, 4)) : null, genreName, data.vote_average, 
           ]
         )
         if(result.rowCount === 1) {
@@ -119,8 +125,8 @@ const add = async (req, res, next) => {
       if(dbData) {
         return res.status(200).json(dbData)
       } else {
-        insertData = await insertMovie()
-        if(insertData.title) {
+        const insertData = await insertMovie()
+        if(insertData && insertData.title) {
           return res.status(201).json(insertData)
         }
         return next(Error("Elokuvaa ei saatu lisättyä"))
@@ -148,4 +154,21 @@ const search = async (req, res, next) => {
   }
 }
 
-module.exports = { add, search }
+const getPopular = async (req, res, next) => {
+  try {
+    const response = await fetch(
+      apiUrl + 'movie/popular?language=fi-FI',
+      options
+    );
+    const data = await response.json();
+    if (response.status === 200) {
+      return res.status(200).json(data);
+    } else {
+      return next(new Error("TMDB-haku ei onnistunut"));
+    }
+  } catch (err) {
+    return next(err);
+  }
+};
+
+module.exports = { add, search, getPopular }

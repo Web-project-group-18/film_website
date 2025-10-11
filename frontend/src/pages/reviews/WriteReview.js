@@ -34,14 +34,12 @@ const WriteReview = () => {
           }
         )
         if(response.status === 201 || response.status === 200) {
-          setMovieCallback(await response.json())
-        } else {
-          setError('Elokuvaa ei saatu haettua')
+          setMovieCallback(await response.json());
+          movieFetched.current = true;
         }
       }
-      getMovie(setMovie)
+      getMovie(setMovie);
     }
-    movieFetched.current = true;
   }, [apiUrl, movieId, setMovie, setError])
 
   useEffect(() => {
