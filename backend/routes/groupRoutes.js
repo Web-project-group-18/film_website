@@ -22,5 +22,7 @@ router.delete('/:id', authenticateToken, groupController.deleteGroup);
 router.post('/:id/movies', authenticateToken, groupController.addMovieToGroup)
 router.get('/:id/movies', authenticateToken, groupController.getGroupMovies)
 
+router.post('/:id/showtimes', authenticateToken, groupController.addShowtimeToGroup)
+
 module.exports = router;
 

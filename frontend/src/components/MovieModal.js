@@ -3,11 +3,15 @@ import '../styles/MovieModal.css';
 
 import { AddShowtimeToGroup } from './groupModals';
 
-function MovieModal({ movie, areaId, onClose }) {
+function MovieModal({ movie, area, onClose }) {
+    const areaId = area.id
+
     const [details, setDetails] = useState(null);
     const [groupedShowtimes, setGroupedShowtimes] = useState({});
     const [expanded, setExpanded] = useState(false);
     const [showGroupModal, setShowGroupModal] = useState(false)
+    const [title, setTitle] = useState('')
+    const [datetime, setDatetime] = useState(null)
     const [showtimeToAdd, setShowtimeToAdd] = useState({})
 
     const isLoggedIn = !!localStorage.getItem('token')
@@ -30,6 +34,7 @@ function MovieModal({ movie, areaId, onClose }) {
                 for (let i = 0; i < events.length; i++) {
                     const event = events[i];
                     const title = event.getElementsByTagName('Title')[0]?.textContent?.trim();
+                    setTitle(title)
                     if (title === movie.title) {
                         const synopsis = event.getElementsByTagName('Synopsis')[0]?.textContent;
                         const eventID = event.getElementsByTagName('ID')[0]?.textContent;
@@ -65,6 +70,7 @@ function MovieModal({ movie, areaId, onClose }) {
                     const show = showsXml[i];
                     const startTime = show.getElementsByTagName('dttmShowStart')[0]?.textContent;
                     if (startTime) {
+                        setDatetime(new Date(startTime))
                         const date = new Date(startTime).toLocaleDateString('fi-FI', {
                             weekday: 'long',
                             day: '2-digit',
@@ -100,7 +106,7 @@ function MovieModal({ movie, areaId, onClose }) {
             {showGroupModal && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <AddShowtimeToGroup onClose={() => setShowGroupModal(false)} showtime={showtimeToAdd} />
+                        <AddShowtimeToGroup onClose={() => setShowGroupModal(false)} showtime={showtimeToAdd}/>
                     </div>
                 </div>
             )}
@@ -132,10 +138,10 @@ function MovieModal({ movie, areaId, onClose }) {
                                                 {isLoggedIn && (
                                                     <button className="add-showtime-to-group"
                                                         onClick={() => openGroupModal({
-                                                            areaId,
-                                                            date: date.slice(-10),
-                                                            eventId: details.eventID,
-                                                            time: t
+                                                            cinemaName: area.name,
+                                                            title,
+                                                            datetime,
+                                                            imageUrl: movie.image
                                                         })}
                                                     >
                                                         Lisää ryhmään

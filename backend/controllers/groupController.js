@@ -69,7 +69,6 @@ const addMovieToGroup = async (req, res, next) => {
     const select = await pool.query('SELECT movie_id FROM movies WHERE tmdb_id=$1;', [tmdbId])
     if(select.rows.length === 0) {
       const movie = await fetchMovie(tmdbId)
-      console.log(movie)
       const insert = await pool.query(
         'INSERT INTO movies (tmdb_id, title, description, poster_url, release_year, genre, tmdb_rating)'
         +' VALUES ($1, $2, $3, $4, $5, $6, $7)'
@@ -113,6 +112,52 @@ const addMovieToGroup = async (req, res, next) => {
       if(e.code == 23505) {
         return res.status(200).json({ message: "Elokuva on jo ryhmässä" })
       } else {
+        return next(e)
+      }
+    }
+  }
+}
+
+const addShowtimeToGroup = async (req, res, next) => {
+  console.log(req.body.showtime)
+  if(!req.body) {
+    return res.status(400).json({ error: 'ei bodya'})
+  } else {
+    const st = req.body.showtime
+    const cinemaName = st.cinemaName
+    const title = st.title
+    const datetime = st.datetime
+    const imageUrl = st.imageUrl
+    if(!cinemaName || !title || !datetime || imageUrl) {
+      return res.status(400).json({ error: 'bodysta puuttuu jotakin'})
+    } else {
+      try {
+        const userId = req.userId
+        const groupIdArray = await selectMatchingGroup(userId, req.params.id)
+        if(groupIdArray.length === 0) {
+          return res.status(403).json({ error: 'Et kuulu tähän ryhmään'})
+        } else {
+          const groupId = groupIdArray[0].group_id
+          const select = await pool.query('SELECT * FROM group_showtimes'
+            +' WHERE group_id=$1 AND showtime=$2 AND theater_name=$3 AND movie_title=$4;',
+            [groupId, datetime, cinemaName, title]
+          )
+          if(select.rows.length === 0) {
+            const insert = await pool.query(
+              'INSERT INTO group_showtimes (group_id, theater_name, movie_title, showtime, added_by_user_id, image_url)'
+              +' VALUES ($1, $2, $3, $4, $5, $6);',
+              [groupId, cinemaName, title, datetime, userId, imageUrl]
+            )
+            if(insert.rowCount) {
+              return res.status(201).json({ message: 'Näytösaika lisätty onnistuneesti' })
+            } else {
+              return next(Error('Näytösaikaa ei saatu lisättyä ryhmään'))
+            }
+          } else {
+            return res.status(200).json({ message: 'Näytösaika on jo ryhmässä' })
+          }
+        }
+      } catch(e) {
         return next(e)
       }
     }
@@ -536,7 +581,8 @@ module.exports = {
   removeMember,
   leaveGroup,
   addMovieToGroup,
-  getGroupMovies
+  getGroupMovies,
+  addShowtimeToGroup
 };
 
 

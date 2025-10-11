@@ -127,12 +127,7 @@ const AddShowtimeToGroup = ({ onClose, showtime }) => {
               "Content-Type": "application/json",
               Authorization: "Bearer "+localStorage.getItem('token')
             },
-          body: JSON.stringify({
-            areaId: showtime.areaId,
-            date: showtime.date,
-            eventId: showtime.eventId,
-            time: showtime.time
-          })
+          body: JSON.stringify({ showtime })
         }
       )
       const result = await response.json()
@@ -147,7 +142,7 @@ const AddShowtimeToGroup = ({ onClose, showtime }) => {
       <GroupForm handleSubmit={(e) => addShowtimeToGroup(e, showtime)} />
       {(status >= 100) && (
         <h3>
-          {((status === 201) || (status === 200)) ? body.message : "Elokuvan lisäämisessä ryhmään tapahtui virhe"}
+          {((status === 201) || (status === 200)) ? body.message : "Näytösajan lisäämisessä ryhmään tapahtui virhe"}
         </h3>
       )}
       <button onClick={onClose}>Peruuta</button>

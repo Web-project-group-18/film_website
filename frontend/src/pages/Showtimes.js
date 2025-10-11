@@ -6,7 +6,8 @@ import '../styles/Showtimes.css';
 
 function Showtimes() {
     const [areas, setAreas] = useState([]);
-    const [areaId, setAreaId] = useState('');
+    const [area, setArea] = useState('');
+    const [areaIndex, setAreaIndex] = useState(-1)
     const [shows, setShows] = useState([]);
     const [images, setImages] = useState({});
     const [selectedMovie, setSelectedMovie] = useState(null);
@@ -78,13 +79,13 @@ function Showtimes() {
 
     //  Hae näytökset valitulle alueelle ja ryhmittele elokuvittain
     useEffect(() => {
-        if (!areaId) return;
+        if (!area) return;
 
         const fetchShowtimes = async () => {
             setLoading(true);
             setError('');
             try {
-                const res = await fetch(`https://www.finnkino.fi/xml/Schedule/?area=${areaId}`);
+                const res = await fetch(`https://www.finnkino.fi/xml/Schedule/?area=${area.id}`);
                 const xmlText = await res.text();
                 const xmlDoc = new DOMParser().parseFromString(xmlText, 'text/xml');
                 const showsXml = xmlDoc.getElementsByTagName('Show');
@@ -116,7 +117,7 @@ function Showtimes() {
         };
 
         fetchShowtimes();
-    }, [areaId, images]);
+    }, [area, images]);
 
     return (
         <div className="showtimes-container">
@@ -135,20 +136,24 @@ function Showtimes() {
             <label htmlFor="area-select">Valitse teatterialue:</label>
             <select
                 id="area-select"
-                value={areaId}
-                onChange={(e) => setAreaId(e.target.value)}
+                value={areaIndex}
+                onChange={(e) => {
+                    const index = e.target.value
+                    setAreaIndex(index)
+                    setArea(areas[index])
+                }}
             >
-                {areas.map((area) => (
-                    <option key={area.id} value={area.id}>
+                {areas.map((area, index) => (
+                    <option key={area.id} value={index}>
                         {area.name}
                     </option>
                 ))}
             </select>
 
-            {!areaId && <p>Valitse teatterialue nähdäksesi näytökset.</p>}
+            {!area.id && <p>Valitse teatterialue nähdäksesi näytökset.</p>}
 
 
-            {areaId && !loading && (
+            {area.id && !loading && (
                 <div className="show-grid">
                     {shows.map((movie, index) => (
                         <MovieCard
@@ -164,7 +169,7 @@ function Showtimes() {
 
             <MovieModal
                 movie={selectedMovie}
-                areaId={areaId}
+                area={area}
                 onClose={() => setSelectedMovie(null)}/>
 
         </div>
